@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 
+import { Icons } from "@/components/icons";
 import { authClient } from "@/lib/auth-client";
 import { ModeToggle } from "@/components/theme/mode-toggle";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,13 @@ export default function LoginPage() {
   const [name, setName] = useState("Test User");
   const [message, setMessage] = useState("");
 
+  function getAuthErrorMessage(
+    error: { message?: string; code?: string; statusText?: string } | undefined,
+    fallback: string,
+  ) {
+    return error?.message || error?.code || error?.statusText || fallback;
+  }
+
   async function handleSignUp() {
     setLoadingProvider("signup");
     setMessage("正在注册账号...");
@@ -38,7 +46,9 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setMessage(`注册失败：${result.error.message}`);
+        setMessage(
+          `注册失败：${getAuthErrorMessage(result.error, "服务端暂时不可用，请稍后重试。")}`,
+        );
         return;
       }
 
@@ -60,7 +70,9 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setMessage(`邮箱登录失败：${result.error.message}`);
+        setMessage(
+          `邮箱登录失败：${getAuthErrorMessage(result.error, "服务端暂时不可用，请稍后重试。")}`,
+        );
         return;
       }
 
@@ -81,7 +93,9 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setMessage(`GitHub 登录失败：${result.error.message}`);
+        setMessage(
+          `GitHub 登录失败：${getAuthErrorMessage(result.error, "服务端暂时不可用，请稍后重试。")}`,
+        );
         setLoadingProvider(null);
       }
     } catch (error) {
@@ -102,7 +116,9 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setMessage(`Google 登录失败：${result.error.message}`);
+        setMessage(
+          `Google 登录失败：${getAuthErrorMessage(result.error, "服务端暂时不可用，请稍后重试。")}`,
+        );
         setLoadingProvider(null);
       }
     } catch (error) {
@@ -193,6 +209,7 @@ export default function LoginPage() {
                 className="w-full"
                 disabled={loadingProvider !== null}
               >
+                <Icons.gitHub className="size-4" aria-hidden="true" />
                 {loadingProvider === "github"
                   ? "正在跳转到 GitHub..."
                   : "使用 GitHub 登录"}
@@ -204,6 +221,7 @@ export default function LoginPage() {
                 className="w-full"
                 disabled={loadingProvider !== null}
               >
+                <Icons.google className="size-4" aria-hidden="true" />
                 {loadingProvider === "google"
                   ? "正在跳转到 Google..."
                   : "使用 Google 登录"}
