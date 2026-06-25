@@ -1,151 +1,222 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+
 import { authClient } from "@/lib/auth-client";
+import { ModeToggle } from "@/components/theme/mode-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 export default function LoginPage() {
+  const [loadingProvider, setLoadingProvider] = useState<
+    "email" | "signup" | "github" | "google" | null
+  >(null);
   const [email, setEmail] = useState("test@example.com");
   const [password, setPassword] = useState("password123456");
   const [name, setName] = useState("Test User");
   const [message, setMessage] = useState("");
 
   async function handleSignUp() {
-    setMessage("注册中...");
+    setLoadingProvider("signup");
+    setMessage("正在注册账号...");
 
-    const result = await authClient.signUp.email({
-      email,
-      password,
-      name,
-    });
+    try {
+      const result = await authClient.signUp.email({
+        email,
+        password,
+        name,
+      });
 
-    if (result.error) {
-      setMessage(`注册失败：${result.error.message}`);
-      return;
+      if (result.error) {
+        setMessage(`注册失败：${result.error.message}`);
+        return;
+      }
+
+      setMessage("注册成功，可以继续登录。");
+    } finally {
+      setLoadingProvider(null);
     }
-
-    setMessage("注册成功，可以登录了。");
   }
 
   async function handleSignIn() {
-    setMessage("登录中...");
+    setLoadingProvider("email");
+    setMessage("正在使用邮箱密码登录...");
 
-    const result = await authClient.signIn.email({
-      email,
-      password,
-      callbackURL: "/dashboard",
-    });
+    try {
+      const result = await authClient.signIn.email({
+        email,
+        password,
+        callbackURL: "/dashboard",
+      });
 
-    if (result.error) {
-      setMessage(`登录失败：${result.error.message}`);
-      return;
+      if (result.error) {
+        setMessage(`邮箱登录失败：${result.error.message}`);
+        return;
+      }
+
+      setMessage("邮箱登录成功，正在跳转到 Dashboard...");
+    } finally {
+      setLoadingProvider(null);
     }
-
-    setMessage("登录成功，正在跳转...");
   }
 
   async function handleGithubLogin() {
-    await authClient.signIn.social({
-      provider: "github",
-      callbackURL: "/dashboard",
-    });
+    setLoadingProvider("github");
+    setMessage("正在跳转到 GitHub 授权页面...");
+
+    try {
+      const result = await authClient.signIn.social({
+        provider: "github",
+        callbackURL: "/dashboard",
+      });
+
+      if (result?.error) {
+        setMessage(`GitHub 登录失败：${result.error.message}`);
+        setLoadingProvider(null);
+      }
+    } catch (error) {
+      setMessage("GitHub 登录发起失败，请稍后重试。");
+      setLoadingProvider(null);
+      throw error; // TODO: handle error
+    }
   }
 
   async function handleGoogleLogin() {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/dashboard",
-    });
+    setLoadingProvider("google");
+    setMessage("正在跳转到 Google 授权页面...");
+
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
+      });
+
+      if (result?.error) {
+        setMessage(`Google 登录失败：${result.error.message}`);
+        setLoadingProvider(null);
+      }
+    } catch (error) {
+      setMessage("Google 登录发起失败，请稍后重试。");
+      setLoadingProvider(null);
+      throw error;
+    }
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-white px-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
-        <h1 className="text-2xl font-bold mb-2">Auth Center</h1>
-        <p className="text-slate-400 mb-6">
-          Next.js + Better Auth + Supabase PostgreSQL 认证 Demo
-        </p>
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="name" className="block text-sm mb-1">Name</label>
-            <input
-              id="name"
-              title="Name"
-              placeholder="Your full name"
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm mb-1">Email</label>
-            <input
-              id="email"
-              title="Email"
-              placeholder="you@example.com"
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              type="email"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="password" className="block text-sm mb-1">Password</label>
-            <input
-              id="password"
-              title="Password"
-              placeholder="Enter your password"
-              className="w-full rounded-lg bg-slate-800 border border-slate-700 px-3 py-2"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              type="password"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={handleSignUp}
-              className="rounded-lg bg-blue-600 hover:bg-blue-500 px-4 py-2 font-medium"
-            >
-              注册
-            </button>
-
-            <button
-              type="button"
-              onClick={handleSignIn}
-              className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-4 py-2 font-medium"
-            >
-              登录
-            </button>
-          </div>
-
-          <div className="h-px bg-slate-800 my-4" />
-
-          <button
-            type="button"
-            onClick={handleGithubLogin}
-            className="w-full rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 font-medium"
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-8">
+        <header className="flex items-center justify-between">
+          <Link
+            href="/"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
-            使用 GitHub 登录
-          </button>
+            ← 返回首页
+          </Link>
 
-          <button
-            type="button"
-            onClick={handleGoogleLogin}
-            className="w-full rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 py-2 font-medium"
-          >
-            使用 Google 登录
-          </button>
+          <ModeToggle />
+        </header>
 
-          {message && (
-            <p className="rounded-lg bg-slate-800 border border-slate-700 px-3 py-2 text-sm text-slate-300">
-              {message}
-            </p>
-          )}
-        </div>
+        <section className="flex flex-1 items-center justify-center">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-2xl">登录 Auth Center</CardTitle>
+              <CardDescription>
+                使用邮箱密码、GitHub 或 Google 登录你的认证 Demo。
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Test User"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  type="email"
+                  placeholder="test@example.com"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  type="password"
+                  placeholder="password123456"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={handleSignUp}
+                  variant="secondary"
+                  disabled={loadingProvider !== null}
+                >
+                  {loadingProvider === "signup" ? "注册中..." : "注册"}
+                </Button>
+
+                <Button
+                  onClick={handleSignIn}
+                  disabled={loadingProvider !== null}
+                >
+                  {loadingProvider === "email" ? "登录中..." : "登录"}
+                </Button>
+              </div>
+
+              <Separator />
+
+              <Button
+                onClick={handleGithubLogin}
+                variant="outline"
+                className="w-full"
+                disabled={loadingProvider !== null}
+              >
+                {loadingProvider === "github"
+                  ? "正在跳转到 GitHub..."
+                  : "使用 GitHub 登录"}
+              </Button>
+
+              <Button
+                onClick={handleGoogleLogin}
+                variant="outline"
+                className="w-full"
+                disabled={loadingProvider !== null}
+              >
+                {loadingProvider === "google"
+                  ? "正在跳转到 Google..."
+                  : "使用 Google 登录"}
+              </Button>
+
+              {message && (
+                <div className="rounded-lg border bg-muted px-3 py-2 text-sm text-muted-foreground">
+                  {message}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </main>
   );

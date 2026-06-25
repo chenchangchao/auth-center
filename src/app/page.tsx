@@ -1,29 +1,53 @@
+// src/app/page.tsx
 import Link from "next/link";
+
+import { ModeToggle } from "@/components/theme/mode-toggle";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-white px-4">
-      <div className="max-w-2xl text-center">
-        <h1 className="text-4xl font-bold mb-4">Auth Center</h1>
-        <p className="text-slate-400 mb-8">
-          基于 Next.js、Better Auth、Supabase PostgreSQL 的统一身份认证中心 Demo。
-        </p>
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col px-6 py-8">
+        <header className="flex items-center justify-between">
+          <div>
+            <p className="text-sm text-muted-foreground">Auth Center</p>
+            <p className="text-sm text-muted-foreground">
+              Next.js + Better Auth + Supabase
+            </p>
+          </div>
 
-        <div className="flex justify-center gap-4">
-          <Link
-            href="/login"
-            className="rounded-lg bg-blue-600 hover:bg-blue-500 px-5 py-3 font-medium"
-          >
-            去登录
-          </Link>
+          <ModeToggle />
+        </header>
 
-          <Link
-            href="/dashboard"
-            className="rounded-lg bg-slate-800 hover:bg-slate-700 px-5 py-3 font-medium"
-          >
-            Dashboard
-          </Link>
-        </div>
+        <section className="flex flex-1 items-center justify-center">
+          <Card className="w-full max-w-2xl text-center">
+            <CardHeader>
+              <CardTitle className="text-4xl font-bold tracking-tight">
+                Auth Center
+              </CardTitle>
+              <CardDescription className="text-base">
+                基于 Next.js、Better Auth、Supabase PostgreSQL 的统一身份认证中心 Demo。
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="flex justify-center gap-4">
+              <Button >
+                <Link href="/login">去登录</Link>
+              </Button>
+
+              <Button variant="secondary">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
       </div>
     </main>
   );
